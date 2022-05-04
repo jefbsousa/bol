@@ -22,8 +22,9 @@ public class BolController {
     private BolService bolService;
 
     @GetMapping("/generate")
-    public ResponseEntity<InputStreamResource> getPdf() throws IOException, TransformerException {
+    public ResponseEntity<byte[]> getPdf() throws IOException, TransformerException {
 //        bolService.generateHtmlToPdf();
+
         byte[] pdfBytes = bolService.generateHtmlToPdf();
         InputStream targetStream = new ByteArrayInputStream(pdfBytes);
 
@@ -32,14 +33,23 @@ public class BolController {
         InputStreamResource resource = new InputStreamResource(targetStream);
         MediaType mediaType = MediaType.parseMediaType("application/pdf");
 
-        return ResponseEntity.ok()
-                // Content-Disposition
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "XXX.pdf")
-                // Content-Type
-                .contentType(mediaType)
-                // Contet-Length
-//                .contentLength(file.length()) //length
-                .body(resource);
+        HttpHeaders headers = new HttpHeaders();
+//        headers.add("content-disposition", "attachment; filename=" + "XXX.pdf");
+        headers.setContentType(MediaType.parseMediaType("application/pdf"));
+        headers.add("content-disposition", "inline;filename=" + "XXX.pdf");
+
+
+//        return ResponseEntity.ok()
+//                // Content-Disposition
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "XXX.pdf")
+//                // Content-Type
+//                .contentType(mediaType)
+//                // Contet-Length
+////                .contentLength(file.length()) //length
+//                .body(resource);
+
+        return new ResponseEntity<byte[]>(
+                pdfBytes, headers, HttpStatus.OK);
 
 //        return new ResponseEntity<>( ,HttpStatus.OK);
 
