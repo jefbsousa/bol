@@ -1,5 +1,6 @@
 package com.jef.bol;
 
+import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfWriter;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import org.jsoup.Jsoup;
@@ -9,6 +10,7 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 import org.xhtmlrenderer.layout.SharedContext;
 import org.xhtmlrenderer.pdf.ITextRenderer;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletResponse;
@@ -40,9 +42,9 @@ public class BolService {
     private Document createWellFormedHtml(File inputHTML) throws IOException {
         Document doc = Jsoup.parse(inputHTML, "UTF-8");
         Element link = doc.select("p#interestRate").first();
-        System.out.println(link.text());
-        link.appendText("JJ");
-        link.text("1234.55");
+//        System.out.println(link.text());
+//        link.appendText("JJ");
+//        link.text("1234.55");
 
         doc.select("p#interestRate").attr("text", "11");
         doc.outputSettings()
@@ -94,7 +96,7 @@ public class BolService {
         buf.append("</body>");
         buf.append("</html>");
 
-        String html = doc.outerHtml().replace("\"", "'");
+        String html = doc.outerHtml();
 //        String html = doc.outerHtml();
         StringBuffer buf2 = new StringBuffer();
         buf2.append(html);
@@ -103,9 +105,18 @@ public class BolService {
         org.w3c.dom.Document docum = builder1.parse(new StringBufferInputStream(buf.toString()));
 
         DocumentBuilder builder2 = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        org.w3c.dom.Document docum2 = builder1.parse(new StringBufferInputStream(buf2.toString()));
+
+//        StringBufferInputStream stringBufferInputStream = new StringBufferInputStream(buf2.toString());
+
+        InputSource is = new InputSource(buf2.toString());
+//        is.setEncoding("UTF-8");
+        is.setEncoding(StandardCharsets.UTF_8.displayName());
+
+        org.w3c.dom.Document docum2 = builder2.parse(is);
 
         ITextRenderer renderer = new ITextRenderer();
+        renderer.getFontResolver().addFont("fonts/ARIALUNI.TTF", BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+
         renderer.setDocument(docum, null);
         renderer.layout();
         OutputStream os = response.getOutputStream();
